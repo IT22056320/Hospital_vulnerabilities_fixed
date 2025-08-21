@@ -30,3 +30,5 @@ export class AuthController {
     }
   });
 }
+
+//Tharindu - Analyzed the Auth Flow to get an idea about OAuth implementation
