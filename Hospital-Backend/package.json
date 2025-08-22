@@ -7,8 +7,7 @@
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "test": "jest --watchAll --verbose",
-    "seed": "ts-node ./scripts/seed.ts"
+    "test": "jest --watchAll --verbose"
   },
   "keywords": [],
   "author": "",
