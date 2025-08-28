@@ -1,5 +1,5 @@
 import React, { useState, useEffect, CSSProperties } from "react";
-import { Table, Button, Container} from "react-bootstrap";
+import { Table, Button, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 interface IPatient {
@@ -18,9 +18,8 @@ const PatientListPage: React.FC = () => {
 
   const fetchPatients = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/v1/staff?role=PATIENT"
-      );
+      const baseUrl = process.env.REACT_APP_API_BASE_URL;
+      const response = await fetch(`${baseUrl}/staff?role=PATIENT`);
       if (!response.ok) {
         throw new Error("Failed to fetch patients");
       }
@@ -64,11 +63,11 @@ const PatientListPage: React.FC = () => {
                     style={{ ...styles.actionButton, ...styles.successButton }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = "#218838";
-                      e.currentTarget.style.borderColor = "#1e7e34"; // Border on hover
+                      e.currentTarget.style.borderColor = "#1e7e34";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "#28a745";
-                      e.currentTarget.style.borderColor = "#28a745"; // Revert to original
+                      e.currentTarget.style.borderColor = "#28a745";
                     }}
                   >
                     Add Diagnosis
@@ -79,11 +78,11 @@ const PatientListPage: React.FC = () => {
                     style={{ ...styles.actionButton, ...styles.warningButton }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = "#e0a800";
-                      e.currentTarget.style.borderColor = "#d39e00"; // Border on hover
+                      e.currentTarget.style.borderColor = "#d39e00";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "#ffc107";
-                      e.currentTarget.style.borderColor = "#ffc107"; // Revert to original
+                      e.currentTarget.style.borderColor = "#ffc107";
                     }}
                   >
                     View Diagnoses
@@ -148,7 +147,7 @@ const styles: { [key: string]: CSSProperties } = {
     marginRight: "2px",
     borderRadius: "5px",
     whiteSpace: "nowrap",
-    transition: "background-color 0.3s ease, border-color 0.3s ease", // Smooth transition for both background and border
+    transition: "background-color 0.3s ease, border-color 0.3s ease",
   },
   successButton: {
     backgroundColor: "#28a745",
