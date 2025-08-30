@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Alert, Row, Col } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
+import { 
+  validateTextInput, 
+  validateMedicalText, 
+  validateDate,
+  INPUT_LIMITS 
+} from "../utils/inputValidation";
 
 interface IDrug {
   drugName: string;
@@ -19,6 +25,16 @@ interface IPatientDiagnosis {
   additionalNotes: string;
 }
 
+interface ValidationErrors {
+  prescriptionId?: string[];
+  prescriptionDate?: string[];
+  symptoms?: string[];
+  diagnosis?: string[];
+  duration?: string[];
+  additionalNotes?: string[];
+  drugs?: { [index: number]: { drugName?: string[]; dosage?: string[]; frequency?: string[] } };
+}
+
 const UpdateDiagnosisPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -33,6 +49,7 @@ const UpdateDiagnosisPage: React.FC = () => {
     additionalNotes: "",
   });
   const [message, setMessage] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [focusedFields, setFocusedFields] = useState<{
     [key: string]: boolean;
   }>({});
@@ -59,6 +76,13 @@ const UpdateDiagnosisPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate all fields before submission
+    if (!validateAllFields()) {
+      setMessage("Please fix validation errors before submitting");
+      return;
+    }
+    
     try {
       const response = await fetch(
         `http://localhost:3000/api/v1/patient-diagnosis/${id}`,
@@ -84,19 +108,114 @@ const UpdateDiagnosisPage: React.FC = () => {
     }
   };
 
+  const validateAllFields = (): boolean => {
+    const errors: ValidationErrors = {};
+    
+    // Validate prescription ID
+    const prescriptionIdResult = validateTextInput(diagnosis.prescriptionId, INPUT_LIMITS.ID_FIELD);
+    if (!prescriptionIdResult.isValid) errors.prescriptionId = prescriptionIdResult.errors;
+    
+    // Validate prescription date
+    const dateResult = validateDate(diagnosis.prescriptionDate);
+    if (!dateResult.isValid) errors.prescriptionDate = dateResult.errors;
+    
+    // Validate symptoms
+    const symptomsResult = validateMedicalText(diagnosis.symptoms);
+    if (!symptomsResult.isValid) errors.symptoms = symptomsResult.errors;
+    
+    // Validate diagnosis text
+    const diagnosisResult = validateMedicalText(diagnosis.diagnosis);
+    if (!diagnosisResult.isValid) errors.diagnosis = diagnosisResult.errors;
+    
+    // Validate duration
+    const durationResult = validateTextInput(diagnosis.duration, INPUT_LIMITS.GENERAL_TEXT);
+    if (!durationResult.isValid) errors.duration = durationResult.errors;
+    
+    // Validate additional notes
+    const notesResult = validateMedicalText(diagnosis.additionalNotes);
+    if (!notesResult.isValid) errors.additionalNotes = notesResult.errors;
+    
+    // Validate drugs
+    const drugErrors: { [index: number]: { drugName?: string[]; dosage?: string[]; frequency?: string[] } } = {};
+    diagnosis.drugs.forEach((drug, index) => {
+      const drugNameResult = validateTextInput(drug.drugName, INPUT_LIMITS.NAME);
+      const dosageResult = validateTextInput(drug.dosage, INPUT_LIMITS.GENERAL_TEXT);
+      const frequencyResult = validateTextInput(drug.frequency, INPUT_LIMITS.GENERAL_TEXT);
+      
+      if (!drugNameResult.isValid || !dosageResult.isValid || !frequencyResult.isValid) {
+        drugErrors[index] = {};
+        if (!drugNameResult.isValid) drugErrors[index].drugName = drugNameResult.errors;
+        if (!dosageResult.isValid) drugErrors[index].dosage = dosageResult.errors;
+        if (!frequencyResult.isValid) drugErrors[index].frequency = frequencyResult.errors;
+      }
+    });
+    
+    if (Object.keys(drugErrors).length > 0) errors.drugs = drugErrors;
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     index?: number
   ) => {
+    const { name, value } = e.target;
+    
     if (index !== undefined) {
+      // Handle drug field changes with validation
+      const result = validateTextInput(value, INPUT_LIMITS.GENERAL_TEXT);
       const updatedDrugs = [...diagnosis.drugs];
       updatedDrugs[index] = {
         ...updatedDrugs[index],
-        [e.target.name]: e.target.value,
+        [name]: result.sanitized,
       };
       setDiagnosis({ ...diagnosis, drugs: updatedDrugs });
+      
+      // Update validation errors for this drug field
+      if (!result.isValid) {
+        const newErrors = { ...validationErrors };
+        if (!newErrors.drugs) newErrors.drugs = {};
+        if (!newErrors.drugs[index]) newErrors.drugs[index] = {};
+        newErrors.drugs[index][name as keyof IDrug] = result.errors;
+        setValidationErrors(newErrors);
+      } else {
+        const newErrors = { ...validationErrors };
+        if (newErrors.drugs?.[index]) {
+          delete newErrors.drugs[index][name as keyof IDrug];
+          if (Object.keys(newErrors.drugs[index]).length === 0) {
+            delete newErrors.drugs[index];
+          }
+        }
+        setValidationErrors(newErrors);
+      }
     } else {
-      setDiagnosis({ ...diagnosis, [e.target.name]: e.target.value });
+      // Handle main field changes with appropriate validation
+      let result;
+      switch (name) {
+        case 'prescriptionId':
+          result = validateTextInput(value, INPUT_LIMITS.ID_FIELD);
+          break;
+        case 'prescriptionDate':
+          result = validateDate(value);
+          break;
+        case 'symptoms':
+        case 'diagnosis':
+        case 'additionalNotes':
+          result = validateMedicalText(value);
+          break;
+        default:
+          result = validateTextInput(value, INPUT_LIMITS.GENERAL_TEXT);
+      }
+      
+      setDiagnosis({ ...diagnosis, [name]: result.sanitized });
+      
+      // Update validation errors
+      if (!result.isValid) {
+        setValidationErrors(prev => ({ ...prev, [name]: result.errors }));
+      } else {
+        setValidationErrors(prev => ({ ...prev, [name]: undefined }));
+      }
     }
   };
 
@@ -207,6 +326,7 @@ const UpdateDiagnosisPage: React.FC = () => {
             name="prescriptionId"
             value={diagnosis.prescriptionId}
             onChange={handleChange}
+            isInvalid={!!validationErrors.prescriptionId}
             required
             style={
               focusedFields["prescriptionId"] ? inputFocusStyle : inputStyle
@@ -214,6 +334,11 @@ const UpdateDiagnosisPage: React.FC = () => {
             onFocus={() => handleFocus("prescriptionId")}
             onBlur={() => handleBlur("prescriptionId")}
           />
+          {validationErrors.prescriptionId && (
+            <Form.Control.Feedback type="invalid">
+              {validationErrors.prescriptionId.join(', ')}
+            </Form.Control.Feedback>
+          )}
         </Form.Group>
 
         <Form.Group controlId="prescriptionDate" style={formGroupStyle}>
@@ -240,11 +365,17 @@ const UpdateDiagnosisPage: React.FC = () => {
             name="symptoms"
             value={diagnosis.symptoms}
             onChange={handleChange}
+            isInvalid={!!validationErrors.symptoms}
             required
             style={{ ...inputStyle, resize: "none" }}
             onFocus={() => handleFocus("symptoms")}
             onBlur={() => handleBlur("symptoms")}
           />
+          {validationErrors.symptoms && (
+            <Form.Control.Feedback type="invalid">
+              {validationErrors.symptoms.join(', ')}
+            </Form.Control.Feedback>
+          )}
         </Form.Group>
 
         <Form.Group controlId="diagnosis" style={formGroupStyle}>
@@ -254,11 +385,17 @@ const UpdateDiagnosisPage: React.FC = () => {
             name="diagnosis"
             value={diagnosis.diagnosis}
             onChange={handleChange}
+            isInvalid={!!validationErrors.diagnosis}
             required
             style={focusedFields["diagnosis"] ? inputFocusStyle : inputStyle}
             onFocus={() => handleFocus("diagnosis")}
             onBlur={() => handleBlur("diagnosis")}
           />
+          {validationErrors.diagnosis && (
+            <Form.Control.Feedback type="invalid">
+              {validationErrors.diagnosis.join(', ')}
+            </Form.Control.Feedback>
+          )}
         </Form.Group>
 
         {diagnosis.drugs.map((drug, index) => (

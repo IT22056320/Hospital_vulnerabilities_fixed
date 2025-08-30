@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Validation Security Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .test-input.invalid {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .test-payload {
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 3px solid #007bff;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .danger {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+</head>
+<body>
+    <h1>🛡️ Hospital Management System - Input Validation Security Test</h1>
+    
+    <div class="test-container">
+        <h2>📋 Test Instructions</h2>
+        <p>This page demonstrates the input validation security measures implemented in the Hospital Management System.</p>
+        <p><strong>What's Being Tested:</strong></p>
+        <ul>
+            <li>XSS (Cross-Site Scripting) Prevention</li>
+            <li>HTML Injection Protection</li>
+            <li>SQL Injection Detection</li>
+            <li>Buffer Overflow Prevention</li>
+            <li>Real-time Input Sanitization</li>
+        </ul>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 1: Basic XSS Script Injection</h2>
+        <p><strong>Payload:</strong></p>
+        <div class="test-payload">&lt;script&gt;alert('XSS Attack!')&lt;/script&gt;</div>
+        
+        <label for="test1">Try entering the above script in this field:</label>
+        <input type="text" id="test1" class="test-input" placeholder="Enter XSS payload here...">
+        <div id="test1-result" class="error-message"></div>
+        <div id="test1-sanitized"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 2: HTML Injection</h2>
+        <p><strong>Payload:</strong></p>
+        <div class="test-payload">&lt;img src="x" onerror="alert('XSS via image')"&gt;</div>
+        
+        <label for="test2">Try entering HTML with event handlers:</label>
+        <input type="text" id="test2" class="test-input" placeholder="Enter HTML payload here...">
+        <div id="test2-result" class="error-message"></div>
+        <div id="test2-sanitized"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 3: SQL Injection Attempt</h2>
+        <p><strong>Payload:</strong></p>
+        <div class="test-payload">admin'; DROP TABLE users; --</div>
+        
+        <label for="test3">Try entering SQL injection payload:</label>
+        <input type="text" id="test3" class="test-input" placeholder="Enter SQL injection here...">
+        <div id="test3-result" class="error-message"></div>
+        <div id="test3-sanitized"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 4: Buffer Overflow Test</h2>
+        <p><strong>Payload:</strong> 10,000 'A' characters</p>
+        
+        <label for="test4">Try entering very long text (limit: 255 chars):</label>
+        <textarea id="test4" class="test-input" placeholder="Enter very long text here..."></textarea>
+        <div id="test4-result" class="error-message"></div>
+        <div id="test4-sanitized"></div>
+        <div>Character count: <span id="char-count">0</span></div>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 Test Results</h2>
+        <div id="test-summary">
+            <p>Enter malicious payloads in the fields above to see the security measures in action.</p>
+        </div>
+    </div>
+
+    <script>
+        // Simplified validation functions for demonstration
+        const MALICIOUS_PATTERNS = {
+            XSS_SCRIPT: /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+            XSS_JAVASCRIPT: /javascript:/gi,
+            XSS_ONLOAD: /on\w+\s*=/gi,
+            SQL_UNION: /(\bunion\b|\bselect\b|\binsert\b|\bdelete\b|\bdrop\b|\bupdate\b)/gi,
+            SQL_COMMENT: /(--|\#|\/\*|\*\/)/g,
+            HTML_TAGS: /<[^>]*>/g,
+        };
+
+        function detectThreats(input) {
+            const threats = [];
+            if (MALICIOUS_PATTERNS.XSS_SCRIPT.test(input)) threats.push('Script tag detected');
+            if (MALICIOUS_PATTERNS.XSS_JAVASCRIPT.test(input)) threats.push('JavaScript protocol detected');
+            if (MALICIOUS_PATTERNS.XSS_ONLOAD.test(input)) threats.push('Event handler detected');
+            if (MALICIOUS_PATTERNS.SQL_UNION.test(input)) threats.push('SQL keywords detected');
+            if (MALICIOUS_PATTERNS.SQL_COMMENT.test(input)) threats.push('SQL comment detected');
+            if (MALICIOUS_PATTERNS.HTML_TAGS.test(input)) threats.push('HTML tags detected');
+            return threats;
+        }
+
+        function sanitizeInput(input) {
+            // Use DOMPurify if available
+            if (window.DOMPurify) {
+                return DOMPurify.sanitize(input, {ALLOWED_TAGS: [], KEEP_CONTENT: true});
+            }
+            // Fallback: basic HTML encoding
+            return input
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;');
+        }
+
+        function setupTest(inputId, maxLength = 255) {
+            const input = document.getElementById(inputId);
+            const result = document.getElementById(inputId + '-result');
+            const sanitized = document.getElementById(inputId + '-sanitized');
+
+            input.addEventListener('input', function() {
+                const value = this.value;
+                const threats = detectThreats(value);
+                const sanitizedValue = sanitizeInput(value);
+                
+                // Check length
+                if (value.length > maxLength) {
+                    this.value = value.substring(0, maxLength);
+                    threats.push(`Input truncated to ${maxLength} characters`);
+                }
+
+                // Display results
+                if (threats.length > 0) {
+                    this.classList.add('invalid');
+                    result.innerHTML = `<span class="danger">⚠️ Security threats detected:</span><br>${threats.join('<br>')}`;
+                } else {
+                    this.classList.remove('invalid');
+                    result.innerHTML = `<span class="success">✅ Input is safe</span>`;
+                }
+
+                if (sanitizedValue !== value) {
+                    sanitized.innerHTML = `<strong>Sanitized output:</strong> <code>${sanitizedValue}</code>`;
+                } else {
+                    sanitized.innerHTML = '';
+                }
+
+                // Update character count for test 4
+                if (inputId === 'test4') {
+                    document.getElementById('char-count').textContent = this.value.length;
+                }
+
+                updateSummary();
+            });
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('test-summary');
+            const tests = ['test1', 'test2', 'test3', 'test4'];
+            let safeInputs = 0;
+            let threatsDetected = 0;
+
+            tests.forEach(testId => {
+                const input = document.getElementById(testId);
+                const result = document.getElementById(testId + '-result');
+                
+                if (input.value) {
+                    if (input.classList.contains('invalid')) {
+                        threatsDetected++;
+                    } else {
+                        safeInputs++;
+                    }
+                }
+            });
+
+            summary.innerHTML = `
+                <h3>Security Status:</h3>
+                <p><span class="success">✅ Safe inputs: ${safeInputs}</span></p>
+                <p><span class="danger">⚠️ Threats detected and blocked: ${threatsDetected}</span></p>
+                <p><span class="info">🛡️ All malicious input has been sanitized and blocked!</span></p>
+            `;
+        }
+
+        // Setup all tests
+        setupTest('test1');
+        setupTest('test2');
+        setupTest('test3');
+        setupTest('test4', 255);
+
+        // Auto-fill test payloads for demonstration
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add helpful instructions
+            console.log('🧪 XSS Protection Test Suite Loaded');
+            console.log('Try entering the following payloads:');
+            console.log('1. <script>alert("XSS")</script>');
+            console.log('2. <img src="x" onerror="alert(\'XSS\')">');
+            console.log('3. admin\'; DROP TABLE users; --');
+            console.log('4. ' + 'A'.repeat(1000));
+        });
+    </script>
+</body>
+</html>

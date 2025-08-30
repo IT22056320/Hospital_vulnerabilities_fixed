@@ -38,3 +38,4 @@ class AuthController {
     }
 }
 exports.AuthController = AuthController;
+//Tharindu - Analyzed the Auth Flow to get an idea about OAuth implementation
