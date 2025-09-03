@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { secureHttpClient } from '../utils/secureHttpClient';
 import { USER_ROLES } from '../components/Auth/LoginContainer';
 
 interface StaffDetails {
@@ -29,7 +29,7 @@ interface AuthResponse {
 class AuthService {
   // Register a new user
   static async register(username: string, email: string, password: string): Promise<any> {
-    const response = await axios.post<any>('http://localhost:3000/api/v1/auth/register', {
+    const response = await secureHttpClient.post<any>('http://localhost:3000/api/v1/auth/register', {
       username,
       email,
       password,
@@ -49,17 +49,17 @@ class AuthService {
 
   // Login the user and store the token and role
   static async login(email: string, password: string): Promise<AuthResponse> {
-    const response = await axios.post<AuthResponse>('http://localhost:3000/api/v1/auth/login', {
+    const response = await secureHttpClient.post<AuthResponse>('http://localhost:3000/api/v1/auth/login', {
       email,
       password,
     });
 
-    const { token, role } = response.data;
+    const { token, staffDetails } = response.data;
 
     // Store token and role if available
-    if (token && role) {
+    if (token && staffDetails?.role) {
       this.setToken(token);
-      this.setRole(role);
+      this.setRole(staffDetails.role);
     }
 
     return response.data;
@@ -70,7 +70,7 @@ class AuthService {
     const token = this.getToken();
     if (!token) throw new Error('No token found, please login.');
 
-    const response = await axios.get<AuthResponse>('http://localhost:3000/api/v1/profile', {
+    const response = await secureHttpClient.get<AuthResponse>('http://localhost:3000/api/v1/profile', {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
@@ -113,7 +113,7 @@ class AuthService {
       const token = this.getToken();
       if (!token) return false;
 
-      const response = await axios.post('http://localhost:3000/api/v1/auth/verify-token', null, {
+      const response = await secureHttpClient.post('http://localhost:3000/api/v1/auth/verify-token', null, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.isValid;
@@ -127,7 +127,7 @@ class AuthService {
     const token = this.getToken();
     if (!token) throw new Error('No token to refresh');
 
-    const response = await axios.post<AuthResponse>('http://localhost:3000/api/v1/auth/refresh-token', null, {
+    const response = await secureHttpClient.post<AuthResponse>('http://localhost:3000/api/v1/auth/refresh-token', null, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
