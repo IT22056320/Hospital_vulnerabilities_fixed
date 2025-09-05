@@ -4,20 +4,6 @@
 
 This report documents a critical **Input Validation and XSS Prevention Vulnerability** identified in the Hospital Management System frontend and the comprehensive security measures implemented to address it.
 
-## Vulnerability Details
-
-### **Vulnerability Type:** Inadequate Input Validation & Cross-Site Scripting (XSS) Prevention
-
-### **Severity Level:** HIGH
-
-### **CVSS Score:** 7.4 (High)
-
-### **Student:** Student 4
-
-### **Fix Status:** ✅ FIXED
-
----
-
 ## Vulnerability Description
 
 ### What Was the Problem?
