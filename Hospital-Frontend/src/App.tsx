@@ -37,6 +37,7 @@ import AboutPage from './pages/AboutPage';
 import DoctorAppointments from './pages/DoctorAppointments';
 import AdminPatientPage from './pages/AdminPatientPage';
 import DiagnosisDetailsPage from './pages/DiagnosisDetailsPage';
+import OAuthCallback from './pages/OAuthCallback';
 
 
 const App: React.FC = () => {
@@ -72,6 +73,7 @@ const App: React.FC = () => {
           <Route path="/docotr-appointments" element={<DoctorAppointments />} />
           <Route path="/admin-patients" element={<AdminPatientPage />} />
           <Route path="/diagnosis-details/:diagnosisId" element={<DiagnosisDetailsPage />} />
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
           {/* Profile route with basic protection */}
           <Route
             path="/profile"

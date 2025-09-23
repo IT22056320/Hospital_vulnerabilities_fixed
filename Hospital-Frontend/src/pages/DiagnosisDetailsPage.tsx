@@ -103,35 +103,35 @@ const DiagnosisDetailsPage: React.FC = () => {
 };
 
 // Inline CSS for styling
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   container: {
-    margin: "20px auto",
-    maxWidth: "95%", // Updated to be more responsive
-    padding: "20px",
-    backgroundColor: "#dce9ff",
-    borderRadius: "8px",
-    border: "8px solid #2963f9",
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+    margin: '20px auto',
+    maxWidth: '95%', // Updated to be more responsive
+    padding: '20px',
+    backgroundColor: '#dce9ff',
+    borderRadius: '8px',
+    border: '8px solid #2963f9',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
   },
   header: {
-    textAlign: "center",
-    marginBottom: "20px",
-    color: "#343a40",
+    textAlign: 'center',
+    marginBottom: '20px',
+    color: '#343a40',
   },
   card: {
-    padding: "20px",
-    border: "none",
-    boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
+    padding: '20px',
+    border: 'none',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
   },
   title: {
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-    marginBottom: "10px",
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '10px',
   },
   button: {
-    marginTop: "20px",
-    width: "100%",
-    padding: "10px",
+    marginTop: '20px',
+    width: '100%',
+    padding: '10px',
   },
 };
 
