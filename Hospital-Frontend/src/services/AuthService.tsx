@@ -54,10 +54,9 @@ class AuthService {
       password,
     });
 
-    const { token, staffDetails } = response.data;
-
-    // Store token and role if available
-    if (token && staffDetails?.role) {
+    const token = response.data.token;
+    const role = (response.data as any).role || response.data.staffDetails?.role;
+    if (token && role) {
       this.setToken(token);
       this.setRole(staffDetails.role);
     }
