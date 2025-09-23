@@ -2,10 +2,14 @@ import express, { Application } from 'express';
 import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import ErrorHandler from './helpers/error-handler';
 import Database from './config/db';
 import dotenv from 'dotenv';
+// Load env vars as early as possible so config/db sees them
+dotenv.config();
 import AuthRoutes from './routes/AuthRoutes';
+import OAuthRoutes from './routes/oauth.routes';
 import staffRoute from './routes/staff.route';
 import staffDetailsRoutes from './routes/staffDetails.routes';
 import appointmentRoutes from './routes/appointment.routes';
@@ -58,13 +62,14 @@ class App {
     this.app.use(helmet());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
-    this.app.use(morgan('combined'));
-    dotenv.config();
+    this.app.use(morgan('combined')); 
+    this.app.use(cookieParser());
   }
 
   private initRoutes() {
     this.app.use('/api/v1/staff', staffRoute);
     this.app.use('/api/v1/auth', AuthRoutes);
+  this.app.use('/api/v1/auth', OAuthRoutes);
     this.app.use('/api/v1/staff-details', staffDetailsRoutes);
     this.app.use('/api/v1/appointments', appointmentRoutes);
     this.app.use('/api/v1/submit-bank-deposit', bankDepositRoutes);

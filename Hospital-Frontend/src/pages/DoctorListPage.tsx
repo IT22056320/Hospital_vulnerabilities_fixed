@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Container, Row, Col } from 'react-bootstrap';
+import { Button, Card, Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 interface IDoctor {
@@ -17,24 +17,13 @@ interface IDoctor {
 
 const DoctorListPage: React.FC = () => {
   const [doctorList, setDoctorList] = useState<IDoctor[]>([]);
-  const [filteredDoctors, setFilteredDoctors] = useState<IDoctor[]>([]);
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('All');
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchDoctorsWithDetails();
   }, []);
 
-  useEffect(() => {
-    // Filter the doctor list based on the selected department
-    if (selectedDepartment === 'All') {
-      setFilteredDoctors(doctorList);
-    } else {
-      setFilteredDoctors(
-        doctorList.filter((doctor) => doctor.department === selectedDepartment)
-      );
-    }
-  }, [selectedDepartment, doctorList]);
+  // Removed unused department filtering logic
 
   const fetchDoctorsWithDetails = async () => {
     try {
@@ -52,8 +41,7 @@ const DoctorListPage: React.FC = () => {
           return { ...doctor, ...details };
         })
       );
-      setDoctorList(doctorsWithDetails);
-      setFilteredDoctors(doctorsWithDetails); // Initially show all doctors
+  setDoctorList(doctorsWithDetails);
     } catch (error) {
       console.error('Error fetching doctors:', error);
     }
@@ -81,15 +69,7 @@ const DoctorListPage: React.FC = () => {
     navigate(`/book-appointment/${doctorId}`);
   };
 
-  const departmentOptions = [
-    'All',
-    'General Physician',
-    'Gynecologist',
-    'Dermatologist',
-    'Pediatricians',
-    'Neurologist',
-    'Gastroenterologist',
-  ];
+  // Removed unused department options
 
   return (
     <Container fluid>

@@ -1,5 +1,11 @@
 import { Router } from 'express';
 import AppointmentController from '../controllers/appointment.controller';
+import { 
+  validateAppointmentId, 
+  validateStaffId, 
+  validateAppointmentData, 
+  handleValidationErrors 
+} from '../middlewares/inputValidation';
 
 class AppointmentRoute {
   private readonly appointmentController: AppointmentController;
@@ -12,13 +18,44 @@ class AppointmentRoute {
   }
 
   private initRoutes() {
-    this.router.post('/', this.appointmentController.create.bind(this.appointmentController)); // Create appointment
-    this.router.get('/doctor/:staffId', this.appointmentController.findByDoctor.bind(this.appointmentController)); // Get all appointments by doctor
-    this.router.put('/:id', this.appointmentController.update.bind(this.appointmentController)); // Update appointment
-    this.router.get('/:id', this.appointmentController.findById.bind(this.appointmentController)); // Get appointment by ID
-    this.router.delete('/:id', this.appointmentController.delete.bind(this.appointmentController)); // Delete appointment
-    this.router.get('/', this.appointmentController.findAll.bind(this.appointmentController)); // Get all appointments (new route)
-    this.router.put('/:id', this.appointmentController.update.bind(this.appointmentController)); // Update appointment
+    // Create appointment with validation
+    this.router.post('/', 
+      validateAppointmentData, 
+      handleValidationErrors, 
+      this.appointmentController.create.bind(this.appointmentController)
+    );
+    
+    // Get all appointments by doctor with staff ID validation
+    this.router.get('/doctor/:staffId', 
+      validateStaffId, 
+      handleValidationErrors, 
+      this.appointmentController.findByDoctor.bind(this.appointmentController)
+    );
+    
+    // Update appointment with ID and data validation
+    this.router.put('/:id', 
+      validateAppointmentId, 
+      validateAppointmentData, 
+      handleValidationErrors, 
+      this.appointmentController.update.bind(this.appointmentController)
+    );
+    
+    // Get appointment by ID with validation
+    this.router.get('/:id', 
+      validateAppointmentId, 
+      handleValidationErrors, 
+      this.appointmentController.findById.bind(this.appointmentController)
+    );
+    
+    // Delete appointment with ID validation
+    this.router.delete('/:id', 
+      validateAppointmentId, 
+      handleValidationErrors, 
+      this.appointmentController.delete.bind(this.appointmentController)
+    );
+    
+    // Get all appointments (no validation needed)
+    this.router.get('/', this.appointmentController.findAll.bind(this.appointmentController));
   }
 }
 
