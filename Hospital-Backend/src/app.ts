@@ -1,5 +1,5 @@
 import express, { Application } from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -19,7 +19,7 @@ import scheduleRoutes from './routes/schedule.route';
 import PatientDiagnosisRoute from './routes/PatientDiagnosisRoute';
 import paymentRoute from './routes/payment.routes';
 import insuranceRoute from './routes/insurance.route';
-import profileRoutes from './routes/profile.routes'; 
+import profileRoutes from './routes/profile.routes';
 
 class App {
   private readonly app: Application;
@@ -43,9 +43,22 @@ class App {
   }
 
   private initMiddlewares() {
-    // Configure CORS to allow the frontend and credentials for cookie-based flows
-    const origin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
-    this.app.use(cors({ origin, credentials: true }));
+    // Secure CORS configuration
+    const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173/').split(',');
+
+    const corsOptions: CorsOptions = {
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('CORS policy: Not allowed by server'));
+        }
+      },
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    };
+    this.app.use(cors());
     this.app.use(helmet());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
