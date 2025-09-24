@@ -1,11 +1,15 @@
 import express, { Application } from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import ErrorHandler from './helpers/error-handler';
 import Database from './config/db';
 import dotenv from 'dotenv';
+// Load env vars as early as possible so config/db sees them
+dotenv.config();
 import AuthRoutes from './routes/AuthRoutes';
+import OAuthRoutes from './routes/oauth.routes';
 import staffRoute from './routes/staff.route';
 import staffDetailsRoutes from './routes/staffDetails.routes';
 import appointmentRoutes from './routes/appointment.routes';
@@ -15,7 +19,7 @@ import scheduleRoutes from './routes/schedule.route';
 import PatientDiagnosisRoute from './routes/PatientDiagnosisRoute';
 import paymentRoute from './routes/payment.routes';
 import insuranceRoute from './routes/insurance.route';
-import profileRoutes from './routes/profile.routes'; 
+import profileRoutes from './routes/profile.routes';
 
 class App {
   private readonly app: Application;
@@ -39,17 +43,33 @@ class App {
   }
 
   private initMiddlewares() {
+    // Secure CORS configuration
+    const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173/').split(',');
+
+    const corsOptions: CorsOptions = {
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('CORS policy: Not allowed by server'));
+        }
+      },
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    };
     this.app.use(cors());
     this.app.use(helmet());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(morgan('combined')); 
-    dotenv.config();
+    this.app.use(cookieParser());
   }
 
   private initRoutes() {
     this.app.use('/api/v1/staff', staffRoute);
     this.app.use('/api/v1/auth', AuthRoutes);
+  this.app.use('/api/v1/auth', OAuthRoutes);
     this.app.use('/api/v1/staff-details', staffDetailsRoutes);
     this.app.use('/api/v1/appointments', appointmentRoutes);
     this.app.use('/api/v1/submit-bank-deposit', bankDepositRoutes);

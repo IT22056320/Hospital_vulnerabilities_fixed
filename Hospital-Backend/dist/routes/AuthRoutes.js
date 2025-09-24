@@ -19,3 +19,4 @@ router.post('/login', [
 ], validateRequest_1.validateRequest, // Middleware to check validation results
 authController.login);
 exports.default = router;
+//Identified Routes to be fixed and changes to be done after Oauth implementation

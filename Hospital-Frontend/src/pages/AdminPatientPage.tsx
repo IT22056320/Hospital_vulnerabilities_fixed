@@ -1,13 +1,15 @@
 import React, { useState, useEffect, CSSProperties } from "react";
 import { Table, Button, Form } from "react-bootstrap";
-import jsPDF from "jspdf"; // PDF generation library
-import "jspdf-autotable"; // Import autoTable for generating tables in PDF
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 interface IPatient {
   _id: string;
   name: string;
   email: string;
 }
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; // ✅ Securely load from .env
 
 const AdminPatientPage: React.FC = () => {
   const [patientList, setPatientList] = useState<IPatient[]>([]);
@@ -24,15 +26,13 @@ const AdminPatientPage: React.FC = () => {
 
   const fetchPatients = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/v1/staff?role=PATIENT"
-      );
+      const response = await fetch(`${API_BASE_URL}/staff?role=PATIENT`); // ✅ No hard-coded URL
       if (!response.ok) {
         throw new Error("Failed to fetch patients");
       }
       const data = await response.json();
       setPatientList(Array.isArray(data) ? data : []);
-      setFilteredPatients(Array.isArray(data) ? data : []); // Initial filter set
+      setFilteredPatients(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching patients:", error);
     }
@@ -44,7 +44,7 @@ const AdminPatientPage: React.FC = () => {
 
   const filterPatients = (query: string) => {
     if (!query) {
-      setFilteredPatients(patientList); // If no query, show all patients
+      setFilteredPatients(patientList);
     } else {
       const filtered = patientList.filter((patient) =>
         patient.name.toLowerCase().includes(query.toLowerCase())

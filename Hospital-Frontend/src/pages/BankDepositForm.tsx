@@ -18,12 +18,14 @@ const validationSchema = Yup.object().shape({
   depositProof: Yup.mixed()
     .required('Upload proof of deposit (PDF) is required')
     .test('fileFormat', 'Uploaded file must be a PDF', (value) => {
-      return value && value.type === 'application/pdf';
+      if (!value) return false;
+      const file = value as File;
+      return file.type === 'application/pdf';
     }),
 });
 
 const BankDepositForm: React.FC = () => {
-  const [depositInfo, setDepositInfo] = useState({
+  const [depositInfo] = useState({
     accountNumber: '123456789',
     bankName: 'XYZ Bank',
     amount: '',
@@ -78,7 +80,7 @@ const BankDepositForm: React.FC = () => {
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ setFieldValue, values, errors, touched }) => (
+        {({ setFieldValue, errors, touched }) => (
           <FormikForm>
             <Row className="mb-3">
               <Col xs={12}>

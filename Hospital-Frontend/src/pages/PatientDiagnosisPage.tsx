@@ -52,16 +52,14 @@ const PatientDiagnosisPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/v1/patient-diagnosis/${id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(diagnosis),
-        }
-      );
+      const baseUrl = process.env.REACT_APP_API_BASE_URL;
+      const response = await fetch(`${baseUrl}/patient-diagnosis/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(diagnosis),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to add diagnosis");
